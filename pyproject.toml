@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cisco-smart-licensing-mcp"
+version = "0.1.0.dev0"
+description = "Community Model Context Protocol (MCP) server for Cisco Smart Software Manager (cloud CSSM) — Smart Account / Virtual Account license inventory."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    { name = "Cisco DevNet Community" },
+]
+keywords = ["cisco", "smart-licensing", "cssm", "smart-account", "mcp", "model-context-protocol"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Networking",
+]
+dependencies = [
+    "mcp>=1.27.0,<2.0.0",
+    "httpx>=0.28.1,<1.0.0",
+    "pydantic>=2.13.3,<3.0.0",
+    "pydantic-settings>=2.14.0,<3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.0,<10.0.0",
+    "pytest-asyncio>=1.3.0,<2.0.0",
+    "pytest-httpx>=0.36.0,<1.0.0",
+    "ruff>=0.15.0,<1.0.0",
+]
+
+[project.scripts]
+cisco-smart-licensing-mcp = "cisco_smart_licensing_mcp.server:main"
+
+[project.urls]
+Documentation = "https://developer.cisco.com/site/Operations-API-Portal/"
+Repository = "https://github.com/CiscoDevNet/cisco-smart-licensing-mcp-community"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cisco_smart_licensing_mcp"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "S", "SIM", "RUF"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests may use long inline fixtures, secret-like literals, and asserts.
+"tests/**/*" = ["E501", "S101", "S105", "S106"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers -m 'not integration'"
+markers = [
+    "integration: requires real Cisco Smart Licensing API credentials (skipped by default)",
+]
+asyncio_mode = "auto"
