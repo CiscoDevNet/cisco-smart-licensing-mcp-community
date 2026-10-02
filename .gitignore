@@ -1,0 +1,30 @@
+# Secrets — never commit
+.env
+*.token
+*.pem
+*.key
+*.crt
+
+# Internal docs (knowledge article, troubleshooting, screenshots, API spec)
+docs/
+
+# Private/original access guide with real Smart Account details (keep local only)
+ACCESS_GUIDE.local.md
+*.local.md
+
+# macOS
+.DS_Store
+
+# Evidence dumps
+evidence/
+*-evidence/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
