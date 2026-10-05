@@ -1,7 +1,7 @@
 # Security Policies and Procedures
 
 This document outlines security procedures and general policies for the
-Cisco Smart Licensing MCP Server project.
+cisco-smart-licensing-mcp-community MCP Server project.
 
 - [Reporting a Bug](#reporting-a-bug)
 - [Disclosure Policy](#disclosure-policy)
@@ -9,9 +9,9 @@ Cisco Smart Licensing MCP Server project.
 
 ## Reporting a Bug
 
-The Cisco Smart Licensing MCP Server team and community take all security bugs in
-Cisco Smart Licensing MCP Server seriously. Thank you for improving the security of
-Cisco Smart Licensing MCP Server. We appreciate your efforts and responsible disclosure and
+The cisco-smart-licensing-mcp-community take all security bugs in cisco-smart-licensing-mcp-community
+cisco-smart-licensing-mcp-community MCP Server seriously. Thank you for improving the security of
+cisco-smart-licensing-mcp-community MCP Server. We appreciate your efforts and responsible disclosure and
 will make every effort to acknowledge your contributions.
 
 Report security bugs by emailing `oss-security@cisco.com`.
