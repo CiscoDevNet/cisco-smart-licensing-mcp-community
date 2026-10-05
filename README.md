@@ -1,4 +1,4 @@
-# Cisco Smart Licensing MCP Server (Community)
+# cisco-smart-licensing-mcp-community
 
 A community **Model Context Protocol (MCP)** server for the Cisco cloud **Smart
 Software Manager (CSSM)** license inventory —
