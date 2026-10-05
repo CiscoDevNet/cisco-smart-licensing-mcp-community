@@ -1,6 +1,6 @@
 # How to Contribute
 
-Thanks for your interest in contributing to Cisco Smart Licensing MCP Server! Here are a few general guidelines on contributing and
+Thanks for your interest in contributing to cisco-smart-licensing-mcp-community MCP Server! Here are a few general guidelines on contributing and
 reporting bugs that we ask you to review. Following these guidelines helps to communicate that you respect the time of
 the contributors managing and developing this open source project. In return, they should reciprocate that respect in
 addressing your issue, assessing changes, and helping you finalize your pull requests. In that spirit of mutual respect,
@@ -32,7 +32,7 @@ reserve breaking changes until the next major version release.
 
 ## Other Ways to Contribute
 
-We welcome anyone that wants to contribute to Cisco Smart Licensing MCP Server to triage and reply to open issues to help troubleshoot
+We welcome anyone that wants to contribute to cisco-smart-licensing-mcp-community MCP Server to triage and reply to open issues to help troubleshoot
 and fix existing bugs. Here is what you can do:
 
 - Help ensure that existing issues follows the recommendations from the _[Reporting Issues](#reporting-issues)_ section,
@@ -42,6 +42,6 @@ and fix existing bugs. Here is what you can do:
 - Review existing pull requests, and testing patches against real existing applications that use Cisco Smart Licensing MCP Server.
 - Write a test, or add a missing test case to an existing test.
 
-Thanks again for your interest on contributing to Cisco Smart Licensing MCP Server!
+Thanks again for your interest on contributing to cisco-smart-licensing-mcp-community MCP Server!
 
 :heart:
