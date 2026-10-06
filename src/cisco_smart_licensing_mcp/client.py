@@ -71,8 +71,9 @@ class SmartLicensingClient:
         *,
         json: dict[str, Any] | None = None,
         params: Mapping[str, Any] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> JsonValue:
-        return self._request("POST", path, json_body=json, params=params)
+        return self._request("POST", path, json_body=json, params=params, extra_headers=headers)
 
     # ------------------------------------------------------------------
     def _build_url(self, path: str) -> str:
@@ -97,6 +98,7 @@ class SmartLicensingClient:
         *,
         params: Mapping[str, Any] | None = None,
         json_body: dict[str, Any] | None = None,
+        extra_headers: Mapping[str, str] | None = None,
     ) -> JsonValue:
         url = self._build_url(path)
         max_attempts = max(1, self._max_retries + 1)
@@ -110,7 +112,7 @@ class SmartLicensingClient:
                     url=url,
                     params=params,
                     json=json_body,
-                    headers=self._headers(),
+                    headers={**(extra_headers or {}), **self._headers()},
                 )
             except httpx.HTTPError as exc:
                 logger.warning(

@@ -141,3 +141,77 @@ def test_inventory_passthrough_get(context: ServerContext, fake_mcp, httpx_mock:
     assert out["result"] == {"policy": {"topic": "x"}}
     req = httpx_mock.get_request(method="GET")
     assert req.url.path == "/v1/software/apis/licensing/v2/account-policy"
+
+
+
+SUMMARY_URL = "https://apx.cisco.com/v1/software/apis/licensing/v2/get-summary"
+_SUMMARY = {
+    "status": "SUCCESS",
+    "out_standing_reports": 3,
+    "summary": [
+        {"display_name": "Aironet DNA Advantage Term Licenses", "inuse": 10, "entitled": 12,
+         "reserved": 0, "compliance_status": "In Compliance", "license_details": [{"quantity": 1}]},
+        {"display_name": "C9300 48P DNA Advantage", "inuse": 5},
+        {"display_name": "C9300 48P DNA Essentials", "inuse": 2},
+        {"display_name": "AP Perpetual Networkstack Advantage", "inuse": 99},
+        {"display_name": "C9300 48P Network Advantage", "inuse": 77},
+    ],
+}
+
+
+def test_license_summary_ids_headers_and_dna_sums(
+    context: ServerContext, fake_mcp, httpx_mock: HTTPXMock
+) -> None:
+    _token(httpx_mock)
+    httpx_mock.add_response(method="POST", url=SUMMARY_URL, json=_SUMMARY)
+    inventory.register(fake_mcp, context)
+
+    out = fake_mcp.tools["sl_get_license_summary"](smart_account_id=111, virtual_account_id=222)
+    assert out["dna_advantage_in_use"] == 15
+    assert out["dna_essentials_in_use"] == 2
+    assert all("license_details" not in x for x in out["licenses"])
+    req = httpx_mock.get_requests(url=SUMMARY_URL)[0]
+    assert req.headers["X-CSW-SMART-ACCOUNT-ID"] == "111"
+    assert req.headers["X-CSW-VIRTUAL-ACCOUNT-ID"] == "222"
+    assert "X-CSW-REQUESTING-SYSTEM" in req.headers
+
+
+def test_license_summary_resolves_ids_with_exact_domain(
+    context: ServerContext, fake_mcp, httpx_mock: HTTPXMock
+) -> None:
+    _token(httpx_mock)
+    httpx_mock.add_response(
+        method="GET",
+        url="https://apx.cisco.com/v1/software/apis/pnp/v2/accounts?accountDomain=woolworths.com.au",
+        json={"data": [
+            {"domainIdentifier": "woolworths.co.za", "accountIdentifier": 242740},
+            {"domainIdentifier": "woolworths.com.au", "accountIdentifier": 131484},
+        ]},
+    )
+    httpx_mock.add_response(
+        method="GET",
+        url="https://apx.cisco.com/v1/software/apis/pnp/v2/accounts/woolworths.com.au/virtual-accounts",
+        json={"data": [{"virtualAccountName": "WOW-NZ", "virtualAccountId": 313017}]},
+    )
+    httpx_mock.add_response(method="POST", url=SUMMARY_URL, json=_SUMMARY)
+    inventory.register(fake_mcp, context)
+
+    out = fake_mcp.tools["sl_get_license_summary"](
+        smart_account_domain="woolworths.com.au", virtual_account_name="WOW-NZ"
+    )
+    assert (out["smart_account_id"], out["virtual_account_id"]) == (131484, 313017)
+
+
+def test_license_summary_ambiguous_domain_errors(
+    context: ServerContext, fake_mcp, httpx_mock: HTTPXMock
+) -> None:
+    _token(httpx_mock)
+    httpx_mock.add_response(
+        method="GET",
+        json={"data": [{"domainIdentifier": "baenzigercoles.com.au", "accountIdentifier": 1}]},
+    )
+    inventory.register(fake_mcp, context)
+    out = fake_mcp.tools["sl_get_license_summary"](
+        smart_account_domain="coles.com.au", virtual_account_id=5
+    )
+    assert out["status"] == "error"

@@ -4,6 +4,8 @@ Read-only tools built on confirmed GET endpoints:
 
 - ``sl_search_product_instances``     -> GET /licensing/v2/accounts/{sa}/devices
 - ``sl_get_subscription_consumption`` -> GET /ea/v1/subscription/account/{sa}/consumption
+- ``sl_get_license_summary``          -> POST /licensing/v2/get-summary (read-only query;
+                                         POST only because the API takes a JSON body)
 
 Plus a locked-down, GET-only, relative-path passthrough (``sl_get_license_inventory``)
 for any other confirmed read-only endpoint in the spec without redeploying.
@@ -15,17 +17,39 @@ It is NOT a general-purpose HTTP client.
 
 from __future__ import annotations
 
+import json
+import re
+import time
 from typing import TYPE_CHECKING, Annotated, Any
 
 from pydantic import Field
 
 from ..decorators import fail_soft
-from ._common import LimitParam, OffsetParam, SmartAccountDomain, VirtualAccountName, drop_none
+from ._common import (
+    LimitParam,
+    OffsetParam,
+    SmartAccountDomain,
+    VirtualAccountName,
+    drop_none,
+    extract_items,
+)
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
 
     from ..registry import ServerContext
+
+_DNA_A = re.compile(r"\bDNA[- ]?A(dvantage)?\b", re.I)
+_DNA_E = re.compile(r"\bDNA[- ]?E(ssentials)?\b", re.I)
+
+
+def _is_dna_a(feature: str) -> bool:
+    return bool(_DNA_A.search(feature)) and "DNA" in feature.upper()
+
+
+def _is_dna_e(feature: str) -> bool:
+    return bool(_DNA_E.search(feature)) and "DNA" in feature.upper()
+
 
 RelativeApiPath = Annotated[
     str,
@@ -111,6 +135,108 @@ def register(mcp: FastMCP, ctx: ServerContext) -> None:
             }
         result = ctx.client.get(f"/ea/v1/subscription/account/{domain}/consumption")
         return {"status": "ok", "smart_account_domain": domain, "result": result}
+
+    @mcp.tool(
+        name="sl_get_license_summary",
+        description=(
+            "Per-license summary for one Virtual Account, via POST "
+            "/licensing/v2/get-summary (read-only query). Identify the account by "
+            "'smart_account_domain' (exact match, resolved to its numeric ID) or "
+            "'smart_account_id', and the VA by 'virtual_account_name' or "
+            "'virtual_account_id'. Returns compact per-tag counts (license_details "
+            "dropped) plus dna_advantage_in_use / dna_essentials_in_use and the tags "
+            "that fed them. Network/Networkstack Advantage/Essentials are NOT DNA."
+        ),
+    )
+    @soft
+    def sl_get_license_summary(
+        smart_account_domain: SmartAccountDomain | None = None,
+        smart_account_id: Annotated[
+            int | None, Field(default=None, ge=1, description="Numeric Smart Account ID.")
+        ] = None,
+        virtual_account_name: VirtualAccountName | None = None,
+        virtual_account_id: Annotated[
+            int | None, Field(default=None, ge=1, description="Numeric Virtual Account ID.")
+        ] = None,
+    ) -> dict[str, Any]:
+        domain = smart_account_domain or ctx.settings.sl_smart_account_domain
+        if smart_account_id is None:
+            if not domain:
+                return {
+                    "status": "error",
+                    "error": "Provide smart_account_id or smart_account_domain.",
+                }
+            found = ctx.client.get("/pnp/v2/accounts", params={"accountDomain": domain})
+            exact = [
+                a
+                for a in extract_items(found)
+                if isinstance(a, dict)
+                and str(a.get("domainIdentifier", "")).lower() == domain.lower()
+            ]
+            if len(exact) != 1:
+                return {
+                    "status": "error",
+                    "error": f"Domain {domain!r} matched {len(exact)} Smart Accounts exactly.",
+                }
+            smart_account_id = int(exact[0]["accountIdentifier"])
+        if virtual_account_id is None:
+            if not (virtual_account_name and domain):
+                return {
+                    "status": "error",
+                    "error": "Provide virtual_account_id, or virtual_account_name plus a domain.",
+                }
+            listing = ctx.client.get(f"/pnp/v2/accounts/{domain}/virtual-accounts")
+            matches = [
+                v
+                for v in extract_items(listing)
+                if isinstance(v, dict) and v.get("virtualAccountName") == virtual_account_name
+            ]
+            if len(matches) != 1:
+                return {
+                    "status": "error",
+                    "error": (
+                        f"Virtual account {virtual_account_name!r} matched "
+                        f"{len(matches)} entries in {domain}."
+                    ),
+                }
+            virtual_account_id = int(matches[0]["virtualAccountId"])
+        now_ms = int(time.time() * 1000)
+        raw = ctx.client.post(
+            "/licensing/v2/get-summary",
+            json={"data": {"timestamp": now_ms, "nonce": str(now_ms)}},
+            headers={
+                "X-CSW-REQUESTING-SYSTEM": json.dumps({"display_name": "CSLU"}),
+                "X-CSW-SMART-ACCOUNT-ID": str(smart_account_id),
+                "X-CSW-VIRTUAL-ACCOUNT-ID": str(virtual_account_id),
+            },
+        )
+        raw = raw if isinstance(raw, dict) else {}
+        licenses = [
+            {
+                "display_name": s.get("display_name"),
+                "entitled": s.get("entitled"),
+                "inuse": s.get("inuse"),
+                "reserved": s.get("reserved"),
+                "compliance_status": s.get("compliance_status"),
+            }
+            for s in raw.get("summary") or []
+            if isinstance(s, dict)
+        ]
+        dna_a = [x for x in licenses if _is_dna_a(x["display_name"] or "")]
+        dna_e = [x for x in licenses if _is_dna_e(x["display_name"] or "")]
+        return {
+            "status": "ok",
+            "smart_account_id": smart_account_id,
+            "virtual_account_id": virtual_account_id,
+            "api_status": raw.get("status"),
+            "message": raw.get("message"),
+            "outstanding_reports": raw.get("out_standing_reports"),
+            "dna_advantage_in_use": sum(x["inuse"] or 0 for x in dna_a),
+            "dna_essentials_in_use": sum(x["inuse"] or 0 for x in dna_e),
+            "dna_advantage_tags": [(x["display_name"], x["inuse"]) for x in dna_a],
+            "dna_essentials_tags": [(x["display_name"], x["inuse"]) for x in dna_e],
+            "licenses": licenses,
+        }
 
     @mcp.tool(
         name="sl_get_license_inventory",
