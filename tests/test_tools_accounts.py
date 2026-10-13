@@ -1,3 +1,7 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """End-to-end tool tests against the real Software-APIs endpoints.
 
 Mock strategy: POST is always the token endpoint; GET is always the API call

@@ -1,3 +1,7 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """Smart Account / Virtual Account discovery (Cisco Software APIs v1.0.2).
 
 Read-only tools built on confirmed GET endpoints:

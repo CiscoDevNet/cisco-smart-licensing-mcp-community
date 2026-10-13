@@ -1,3 +1,7 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """Secret redaction in structured logs / evidence payloads."""
 
 from __future__ import annotations

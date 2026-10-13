@@ -1,3 +1,7 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """Thin REST client for the Cisco Smart Accounts & Licensing v2 API.
 
 - All requests target the configured ``SL_BASE_URL`` host (SSRF-allowlisted).

@@ -1,3 +1,7 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """cisco-smart-licensing-mcp: community MCP server for Cisco Smart Software Manager.
 
 Talks to the cloud CSSM Cisco "Software APIs"
