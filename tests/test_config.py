@@ -1,3 +1,7 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """Settings validation: defaults, credential pairing, URL + SSRF guards."""
 
 from __future__ import annotations

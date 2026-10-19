@@ -1,3 +1,7 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """Exception types for cisco-smart-licensing-mcp.
 
 Designed to surface clean, redacted, actionable messages to the MCP client

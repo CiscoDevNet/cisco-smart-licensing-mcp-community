@@ -1,3 +1,7 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """Configuration for cisco-smart-licensing-mcp.
 
 All configuration comes from environment variables. Credentials are NEVER read
