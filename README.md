@@ -52,7 +52,7 @@ client_id/secret by registering an app on the
 
 ## Tools
 
-All read-only, mapped to confirmed GET endpoints in the Software APIs spec:
+All read-only, mapped to confirmed endpoints in the Software APIs spec:
 
 | Tool                             | Endpoint |
 | -------------------------------- | -------- |
@@ -60,14 +60,15 @@ All read-only, mapped to confirmed GET endpoints in the Software APIs spec:
 | `sl_list_virtual_accounts`       | `GET /pnp/v2/accounts/{smartAccountDomain}/virtual-accounts` |
 | `sl_search_product_instances`    | `GET /licensing/v2/accounts/{smartAccountDomain}/devices` |
 | `sl_get_subscription_consumption`| `GET /ea/v1/subscription/account/{smartAccountDomain}/consumption` |
+| `sl_get_license_summary`         | `POST /licensing/v2/get-summary` (read-only query; POST because the API takes a JSON body). Per-Virtual-Account owned/in-use counts and compliance, plus DNA Advantage/Essentials in-use totals (DNA-branded licenses only) |
 | `sl_get_license_inventory`       | GET passthrough to any confirmed relative path (escape hatch) |
 
 > **More endpoints available.** The spec has 130 operations (license summary,
 > history, SLR reservations, tokens, PnP devices, etc.). The passthrough
 > (`sl_get_license_inventory`) reaches any read-only one today; high-value ones
-> can be promoted to named tools on request. Note `POST /licensing/v2/get-summary`
+> can be promoted to named tools on request. `POST /licensing/v2/get-summary`
 > needs numeric `X-CSW-SMART-ACCOUNT-ID` / `X-CSW-VIRTUAL-ACCOUNT-ID` headers, so
-> it's intentionally left for a dedicated tool.
+> it has a dedicated tool (`sl_get_license_summary`) rather than the GET passthrough.
 
 ## Install
 
